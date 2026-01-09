@@ -15,7 +15,7 @@ O projeto foi construído utilizando tecnologias web padrão e bibliotecas focad
 
 Você pode acessar a versão publicada do projeto clicando no link abaixo:
 
-🔗 **[INSIRA O SEU LINK DA VERCEL OU GITHUB PAGES AQUI]**
+🔗 **https://classy-ganache-e40716.netlify.app**
 
 > **Nota:** Como o projeto usa a câmera, você precisa conceder permissão de acesso ao abrir o link.
 
