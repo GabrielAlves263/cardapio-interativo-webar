@@ -4,78 +4,91 @@
  * realScale: tamanho em metros (ex: 0.1 = 10cm) para a página Three.js
  * scale: tamanho para o A-Frame (MindAR)
  */
+// define a lista de itens do menu com metadados para renderização 3d e informações comerciais
 const menuItems = [
     {
         id: "menu-1",
         title: "Tábua de Frios",
-        price: "R$ 85,00",
-        desc: "Seleção premium.",
+        price: "R$ 98,50",
+        desc: "Seleção de queijos nobres, nuts e embutidos. Rico em proteínas e gorduras boas.",
         modelId: "#model-snacks",
         path: "assets/food/snacks-2.glb",
         scale: "20 20 20",
         realScale: 0.9,
-        hasOffer: false, // <--- NOVO
-        isVegan: false, isGlutenFree: true, isLactoseFree: false
+        hasOffer: false,
+        isVegan: false, 
+        isGlutenFree: true, 
+        isLactoseFree: false
     },
     {
         id: "menu-2",
-        title: "Sanduíche",
-        price: "R$ 32,90",
-        desc: "Artesanal.",
+        title: "Sanduíche Artesanal",
+        price: "R$ 38,90",
+        desc: "Ciabatta com vegetais grelhados e hummus. Fonte de fibras e baixo teor calórico.",
         modelId: "#model-sandwich",
         path: "assets/food/sandwich.glb",
         scale: "23 23 23",
         realScale: 1.3,
-        hasOffer: false, // <--- NOVO
-        isVegan: true, isGlutenFree: false, isLactoseFree: false 
+        hasOffer: false,
+        isVegan: true, // descrição ajustada para condizer com a flag vegana
+        isGlutenFree: false, 
+        isLactoseFree: false 
     },
     {
         id: "menu-3",
-        title: "Pizza",
-        price: "R$ 45,00",
-        desc: "Marguerita.",
+        title: "Pizza Marguerita",
+        price: "R$ 56,00",
+        desc: "Massa de fermentação natural com manjericão fresco. Energética e rica em cálcio.",
         modelId: "#model-pizza",
         path: "assets/food/pizza-2.glb",
         scale: "30 30 30",
         realScale: 1.2,
-        hasOffer: true, // <--- OFERTA ATIVA AQUI
-        isVegan: false, isGlutenFree: false, isLactoseFree: false
+        hasOffer: true, // oferta ativa é mantida
+        isVegan: false, 
+        isGlutenFree: false, 
+        isLactoseFree: false
     },
     {
         id: "menu-4",
-        title: "Café da Manhã",
-        price: "R$ 25,00",
-        desc: "Completo.",
+        title: "Café Continental",
+        price: "R$ 32,00",
+        desc: "Combo com frutas da estação, ovos e grãos. Mix completo de vitaminas e minerais.",
         modelId: "#model-breakfast",
         path: "assets/food/breakfest-4.glb",
         scale: "4 4 4",
         realScale: 0.18,
-        hasOffer: false, // <--- NOVO
-        isVegan: false, isGlutenFree: false, isLactoseFree: true
+        hasOffer: false,
+        isVegan: false, 
+        isGlutenFree: false, 
+        isLactoseFree: true
     },
     {
         id: "menu-5",
-        title: "Frango",
-        price: "R$ 38,00",
-        desc: "Frito.",
+        title: "Frango Crispy",
+        price: "R$ 48,90",
+        desc: "Cortes suculentos empanados em ervas finas. Alta concentração proteica.",
         modelId: "#model-chicken",
         path: "assets/food/chicken-fries-2.glb",
         scale: "8 8 8",
         realScale: 0.25,
-        hasOffer: true, // <--- OFERTA ATIVA AQUI
-        isVegan: false, isGlutenFree: false, isLactoseFree: true
+        hasOffer: true, // oferta ativa é mantida
+        isVegan: false, 
+        isGlutenFree: false, 
+        isLactoseFree: true
     },
     {
         id: "menu-6",
-        title: "Tiramisù",
-        price: "R$ 18,00",
-        desc: "Doce.",
+        title: "Tiramisù Vegano",
+        price: "R$ 24,50",
+        desc: "Creme à base de castanhas e cacau 70%. Sobremesa funcional e antioxidante.",
         modelId: "#model-cake",
         path: "assets/food/cake-2.glb",
         scale: "4 4 4",
         realScale: 0.27,
-        hasOffer: false, // <--- NOVO
-        isVegan: true, isGlutenFree: false, isLactoseFree: false
+        hasOffer: false,
+        isVegan: true, // descrição ajustada para ser vegana (base de castanhas)
+        isGlutenFree: false, 
+        isLactoseFree: false
     }
 ];
 const appState = {
