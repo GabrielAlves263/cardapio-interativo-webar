@@ -1,153 +1,232 @@
-* {
-  box-sizing: border-box;
+:root {
+    --primary-color: #ffbd30;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --text-dark: #2d3436;
+    --active-bg: #2d3436;
+    --active-text: #ffffff;
 }
+
+* { box-sizing: border-box; }
+
 body {
-  margin: 0;
-  overflow: hidden;
-  font-family: "Roboto", sans-serif;
-  touch-action: none;
-}
-#hud-container {
-  display: none;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
 }
 
-#hud-titulo {
-  position: fixed;
-  top: 20px;
-  top: calc(20px + env(safe-area-inset-top));
-  left: 0;
-  width: 100%;
-  padding: 0 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  font-size: 1.4rem;
-  z-index: 90;
-  pointer-events: none;
-  white-space: normal;
-  line-height: 1.2;
+/* --- Estados de Visibilidade --- */
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
 }
 
-.nav-btn {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(5px);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  font-size: 28px;
-  cursor: pointer;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  user-select: none;
-}
-.nav-btn:active {
-  transform: translateY(-50%) scale(0.95);
-  background: rgba(255, 255, 255, 0.3);
-}
-#btn-anterior {
-  left: 15px;
-}
-#btn-proximo {
-  right: 15px;
+/* --- Camada de Detalhes (Card Central) --- */
+.details-layer {
+    position: fixed;
+    bottom: 30px; /* Acima do FAB se necessário, ou ajustado */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 90;
+    pointer-events: none;
+    transition: all 0.4s ease;
 }
 
-#info-panel {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 20px 20px calc(20px + env(safe-area-inset-bottom)) 20px;
-  border-radius: 20px 20px 0 0;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
-  z-index: 101;
-  animation: slideUp 0.3s ease-out;
+.details-layer.hidden {
+    transform: translate(-50%, 50px);
+    opacity: 0;
 }
-@keyframes slideUp {
-  from {
-    bottom: -100%;
-  }
-  to {
-    bottom: 20px;
-  }
+
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
-#prato-nome {
-  margin: 0 0 10px 0;
-  font-size: 1.5rem;
-  color: #333;
+
+/* Card do Produto */
+.product-card {
+    width: 90%;
+    max-width: 380px;
+    pointer-events: auto;
+    text-align: left;
 }
-#prato-desc {
-  font-size: 1rem;
-  color: #666;
-  line-height: 1.4;
-  margin-bottom: 15px;
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 10px;
 }
-#prato-preco {
-  font-size: 1.4rem;
-  color: #2ecc71;
-  display: block;
-  margin-bottom: 15px;
+
+.card-header h2 { margin: 0; font-size: 1.1rem; color: var(--text-dark); }
+.price-tag { color: var(--primary-color); font-weight: 800; font-size: 1.1rem; }
+#p-desc { margin: 0; font-size: 0.95rem; color: #555; line-height: 1.4; }
+
+/* --- Camada FAB (Botão de Filtro) --- */
+.fab-layer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    transition: opacity 0.5s ease;
 }
-.btn-fechar {
-  background: #ff4757;
-  color: white;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 50px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+
+.fab-container {
+    display: flex;
+    flex-direction: column-reverse; /* Botão embaixo, itens sobem */
+    align-items: flex-end;
+    gap: 12px;
 }
-#mensagem-scan {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-family: sans-serif;
-  text-align: center;
-  font-size: 1.2em;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  padding: 30px;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 70%;
-  z-index: 80;
-  pointer-events: none;
+
+/* Botão Principal Redondo */
+.fab-main {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--text-dark);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s;
+    pointer-events: auto;
 }
-@media (max-height: 500px) {
-  #info-panel {
-    width: 60%;
-    bottom: 10px;
-    padding: 10px;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  .nav-btn {
-    width: 40px;
-    height: 40px;
+
+.fab-main:active { transform: scale(0.95); }
+.fab-main.open { transform: rotate(45deg); background: var(--primary-color); }
+
+/* Ícone CSS puro (Filtro / Fechar) */
+/* .fab-icon::before { content: "🌪️"; font-size: 24px; }
+.fab-main.open .fab-icon::before { content: "✕"; font-size: 20px; } */
+
+/* Nova regra para o ícone */
+.material-symbols-outlined {
+    font-size: 24px; /* Tamanho do ícone */
+    user-select: none; /* Impede seleção de texto */
+    transition: transform 0.3s ease; /* Animação suave na troca */
+}
+
+/* Quando o botão estiver aberto (classe .open no pai) */
+.fab-main.open .material-symbols-outlined {
+    /* Opcional: faz o ícone girar um pouco na troca */
+    transform: rotate(90deg); 
+}
+
+/* Grupo de Opções (Escondido) */
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+    pointer-events: none;
+    transform-origin: bottom right;
+    transition: all 0.3s ease-out;
+}
+
+.filter-group.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Botões de Filtro Individuais */
+.filter-btn {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dark);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    text-align: right;
+    transition: all 0.2s;
+    /* Animação escalonada */
+    opacity: 0; transform: translateX(20px);
+}
+
+.filter-group.show .filter-btn { opacity: 1; transform: translateX(0); }
+.filter-group.show .filter-btn:nth-child(1) { transition-delay: 0.1s; }
+.filter-group.show .filter-btn:nth-child(2) { transition-delay: 0.05s; }
+.filter-group.show .filter-btn:nth-child(3) { transition-delay: 0s; }
+
+.filter-btn.active {
+    background: var(--active-bg);
+    color: var(--active-text);
+    border-color: var(--active-bg);
+}
+
+/* --- Overlay de Scan --- */
+.scan-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    background: rgba(0,0,0,0.3); /* Escurece levemente o fundo */
+    pointer-events: none;
+}
+.scan-overlay.hidden { display: none; }
+
+.scan-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Adicione isso ao final do seu CSS */
+
+.action-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--text-dark);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.3s ease;
+    pointer-events: auto;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+    background: #000;
+}
+
+/* Ajuste para o ícone dentro do botão */
+.action-btn .material-symbols-outlined {
     font-size: 20px;
-  }
+}
+
+/* Quando entra no modo AR (Retículo), escondemos coisas desnecessárias */
+body.ar-mode .scan-overlay,
+body.ar-mode .fab-layer {
+    display: none !important;
 }

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Modo Mesa - AR</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script type="module" src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"></script>
+
+    <style>
+        body { margin: 0; background-color: #1a1a1a; overflow: hidden; font-family: 'Inter', sans-serif; }
+        
+        .force-hide {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        #ar-ui-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+        #ar-ui-container button { pointer-events: auto; }
+
+        /* Botão Voltar */
+        #back-btn {
+            position: absolute; top: 24px; left: 24px; z-index: 2000;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333; border: none; border-radius: 50px;
+            padding: 12px 24px; font-weight: 700; font-size: 14px;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: transform 0.2s;
+            pointer-events: auto;
+        }
+        #back-btn:active { transform: scale(0.95); }
+
+        #instruction {
+            position: absolute; bottom: 85px; width: 90%; left: 5%;
+            text-align: center; color: white; font-size: 16px; font-weight: 500;
+            pointer-events: none; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            z-index: 90; white-space: pre-wrap; 
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px; border-radius: 8px; box-sizing: border-box;
+            transition: opacity 0.5s;
+            margin-bottom: 3rem;
+        }
+
+        /* Botão AR (Posicionar) */
+        #ar-button {
+            font-size: 0 !important; width: 240px !important; height: 54px !important;
+            border-radius: 27px !important; background-color: white !important;
+            bottom: 24px !important; left: 50% !important;
+            transform: translateX(-50%) !important;
+            opacity: 1 !important; display: flex !important;
+            justify-content: center; align-items: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            transition: transform 0.2s, opacity 0.3s !important;
+            z-index: 999 !important;
+        }
+        #ar-button:active { transform: translateX(-50%) scale(0.95) !important; }
+        #ar-button::after { content: "POSICIONAR NA MESA"; font-size: 14px !important; color: #000 !important; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        #ar-button::before { content: 'view_in_ar'; font-family: 'Material Symbols Outlined'; font-size: 24px; color: #000; margin-right: 8px; font-weight: normal; }
+        #ar-button:disabled { opacity: 0.5 !important; pointer-events: none; }
+        #ar-button:disabled::after { content: "AR NÃO SUPORTADO"; color: #555 !important; }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 200;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            color: white; font-weight: 500;
+            transition: background-color 0.5s, opacity 0.5s, visibility 0.5s;
+            pointer-events: none; 
+        }
+        #loading-overlay:not(.loaded) { pointer-events: all; }
+        #loading-text { margin-top: -20px; font-size: 14px; opacity: 0.8; font-family: monospace; transition: opacity 0.3s; }
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* Botão de Oferta */
+        #offer-btn {
+            position: absolute; top: 80px; left: 24px; z-index: 1000; 
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white; border: none; border-radius: 12px;
+            padding: 12px 16px; font-weight: 600; font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.3s, visibility 0.3s;
+            max-width: 200px; text-align: left; line-height: 1.2;
+            opacity: 0; visibility: hidden; pointer-events: auto;
+        }
+        #offer-btn.visible { opacity: 1; visibility: visible; }
+        #offer-btn:active { transform: scale(0.95); }
+        #offer-btn .icon { font-size: 24px; }
+        #offer-btn small { display: block; font-size: 11px; font-weight: 400; opacity: 0.9; margin-top: 2px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="ar-ui-container">
+        
+        <div id="loading-overlay">
+            <dotlottie-player 
+                src="assets/ui/ar-phone.lottie" 
+                background="transparent" speed="1" style="width: 200px; height: 200px;" loop autoplay>
+            </dotlottie-player>
+            <div id="loading-text">Iniciando...</div>
+        </div>
+
+        <button id="back-btn" onclick="goBack()">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Escolher outra opção
+        </button>
+
+        <button id="offer-btn">
+            <span class="material-symbols-outlined icon">wine_bar</span>
+            <div>
+                Vai um vinho?
+                <small>Adicionar por R$ 45,00</small>
+            </div>
+        </button>
+
+        <div id="instruction">Aguarde o carregamento do modelo...</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { ARButton } from 'three/addons/webxr/ARButton.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+        let container;
+        let camera, scene, renderer;
+        let controller;
+        let reticle;
+        let hitTestSource = null;
+        let hitTestSourceRequested = false;
+        let loadedModel = null;
+        let wineModel = null;
+        let hiddenWineInstance = null; // Instância do vinho já na cena, mas invisível
+        
+        let isObjectPlaced = false; 
+        
+        const animatedMeshes = [];
+
+        const modelPath = sessionStorage.getItem('ar-model-path');
+        const modelScale = parseFloat(sessionStorage.getItem('ar-model-scale')) || 0.1;
+        const hasOffer = sessionStorage.getItem('ar-model-offer') === 'true';
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const instruction = document.getElementById('instruction');
+        const offerBtn = document.getElementById('offer-btn');
+        const backBtn = document.getElementById('back-btn');
+
+        init();
+        animate();
+
+        function init() {
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 3);
+            light.position.set(0.5, 1, 0.25);
+            scene.add(light);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            dirLight.position.set(0, 5, 0);
+            scene.add(dirLight);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            const arButton = ARButton.createButton(renderer, { 
+                requiredFeatures: ['hit-test', 'dom-overlay'], 
+                domOverlay: { root: document.body }
+            });
+            arButton.id = "ar-button"; 
+            document.body.appendChild(arButton);
+
+            // --- INÍCIO DA SESSÃO AR ---
+            renderer.xr.addEventListener('sessionstart', () => {
+                console.log("Sessão AR Iniciada.");
+                loadingOverlay.classList.add('force-hide');
+                instruction.classList.add('force-hide');
+                arButton.classList.add('force-hide'); 
+            });
+
+            renderer.xr.addEventListener('sessionend', () => {
+                window.location.reload();
+            });
+
+            if (hasOffer) {
+                offerBtn.addEventListener('click', showWine);
+            }
+
+            if (modelPath) {
+                loadingText.innerText = "Preparando Decodificador...";
+
+                const dracoLoader = new DRACOLoader();
+                dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+                dracoLoader.setDecoderConfig({ type: 'js' });
+
+                const loader = new GLTFLoader();
+                loader.setDRACOLoader(dracoLoader);
+
+                loader.load(modelPath, 
+                    function (gltf) {
+                        loadedModel = gltf.scene;
+                        
+                        const box = new THREE.Box3().setFromObject(loadedModel);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        const yOffset = (center.y - size.y / 2);
+                        loadedModel.position.set(-center.x, -yOffset, -center.z);
+                        
+                        const wrapper = new THREE.Group();
+                        wrapper.add(loadedModel);
+                        loadedModel = wrapper;
+                        
+                        loadingText.innerText = "Pronto! Clique abaixo.";
+                        loadingOverlay.classList.add('loaded'); 
+                        instruction.innerText = "Clique em 'Posicionar na Mesa' para iniciar";
+                    }, 
+                    function (xhr) {
+                        if (xhr.lengthComputable) {
+                            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                            loadingText.innerText = `Baixando... ${percent}%`;
+                        }
+                    }, 
+                    function (error) {
+                        console.error(error);
+                        instruction.innerText = "Erro ao carregar.";
+                    }
+                );
+
+                if (hasOffer) {
+                    loader.load('assets/food/drinks/wine-bottle.glb', function(gltf) {
+                        wineModel = gltf.scene;
+                        // Ajuste de escala e centralização do vinho aqui se precisar
+                        const box = new THREE.Box3().setFromObject(wineModel);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        const yOffset = (center.y - size.y / 2);
+                        wineModel.position.set(-center.x, -yOffset, -center.z);
+                        // wineModel.rotateX(Math.PI / 2); // Ajusta a rotação se necessário
+                        // Wrapper para o vinho também (boa prática)
+                        wineModel.rotation.y += Math.PI; // 180 graus em radianos
+
+                        // --- WRAPPER + LUZ ---
+                        
+                        
+                        // --- WRAPPER + LUZ ---
+                        const wrapper = new THREE.Group();
+                        wrapper.add(wineModel);
+                        
+                        const wineLight = new THREE.PointLight(0xffaa00, 1.5, 10); 
+                        wineLight.position.set(0, 3, 0); 
+                        wrapper.add(wineLight);
+
+                        wineModel = wrapper;
+                        
+                    }, undefined, function(e) {
+                        console.warn("Erro ao carregar vinho:", e);
+                    });
+                }
+            }
+
+            controller = renderer.xr.getController(0);
+            controller.addEventListener('select', onSelect);
+            scene.add(controller);
+
+            reticle = new THREE.Mesh(
+                new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+                new THREE.MeshBasicMaterial({opacity: 0.8, transparent: true})
+            );
+            reticle.matrixAutoUpdate = false;
+            reticle.visible = false;
+            scene.add(reticle);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Função chamada ao clicar no botão "Vai um vinho?"
+        function showWine(event) {
+            event.stopPropagation(); 
+            
+            // Se o vinho já está na cena (apenas invisível e achatado)
+            if (hiddenWineInstance) {
+                // Adiciona ao array de animação para crescer
+                animatedMeshes.push({ 
+                    mesh: hiddenWineInstance, 
+                    targetScale: 2 // Escala final desejada para o vinho
+                });
+                
+                offerBtn.classList.remove('visible');
+                
+                // Feedback visual simples via toast ou log, sem texto fixo na tela
+                console.log("Vinho aparecendo!");
+            }
+        }
+
+        function onSelect() {
+            if (isObjectPlaced) return; 
+
+            if (reticle.visible && loadedModel) {
+                // Cria um grupo principal para segurar tudo (Pizza + Vinho)
+                const placedGroup = new THREE.Group();
+                placedGroup.position.setFromMatrixPosition(reticle.matrix);
+                placedGroup.quaternion.setFromRotationMatrix(reticle.matrix);
+                scene.add(placedGroup);
+
+                // 1. ADICIONA O PRATO PRINCIPAL
+                const mesh = loadedModel.clone();
+                mesh.scale.set(modelScale, 0.001, modelScale); // Começa achatado
+                
+                // Prepara opacidade do prato
+                mesh.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = child.material.clone();
+                        child.material.transparent = true;
+                        child.material.opacity = 0;
+                    }
+                });
+                placedGroup.add(mesh); 
+                
+                // Anima o prato
+                animatedMeshes.push({ mesh: mesh, targetScale: modelScale });
+
+                // 2. ADICIONA O VINHO (SE HOUVER OFERTA) - INVISÍVEL
+                if (hasOffer && wineModel) {
+                    const wine = wineModel.clone();
+                    
+                    // Posiciona o vinho relativo ao centro do grupo
+                    // Diagonal direita (X+ e Z-)
+                    wine.position.set(0.25, 0, -0.2); 
+                    
+                    // Começa invisível (escala 0 e opacidade 0)
+                    wine.scale.set(0.5, 0.001, 0.5); // Largura ok, altura 0
+                    
+                    wine.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material = child.material.clone();
+                            child.material.transparent = true;
+                            child.material.opacity = 0;
+                        }
+                    });
+                    
+                    placedGroup.add(wine);
+                    const wineLight = new THREE.PointLight(0xffaa00, 1.5, 1); 
+                        wineLight.position.set(0, 0.4, 0); 
+                    placedGroup.add(wineLight);
+                    // Guarda referência global para animar depois
+                    hiddenWineInstance = wine;
+                }
+
+                isObjectPlaced = true; 
+                reticle.visible = false;
+                
+                // Lógica de UI pós-colocação
+                if (hasOffer) {
+                    setTimeout(() => { offerBtn.classList.add('visible'); }, 1000); 
+                }
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            renderer.setAnimationLoop(render);
+        }
+
+        function render(timestamp, frame) {
+            if (animatedMeshes.length > 0) {
+                animatedMeshes.forEach((item) => {
+                    // Animação de "brotar" (Eixo Y)
+                    const currentY = item.mesh.scale.y;
+                    
+                    // Se já estiver perto do tamanho final, para de calcular
+                    if (Math.abs(currentY - item.targetScale) > 0.001) {
+                        const nextY = THREE.MathUtils.lerp(currentY, item.targetScale, 0.1);
+                        item.mesh.scale.set(item.targetScale, nextY, item.targetScale);
+
+                        item.mesh.traverse((child) => {
+                            if (child.isMesh && child.material.opacity < 1) {
+                                child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 1, 0.08);
+                                if (child.material.opacity > 0.99) child.material.transparent = false;
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (frame) {
+                const referenceSpace = renderer.xr.getReferenceSpace();
+                const session = renderer.xr.getSession();
+
+                if (hitTestSourceRequested === false) {
+                    session.requestReferenceSpace('viewer').then(function (referenceSpace) {
+                        session.requestHitTestSource({ space: referenceSpace }).then(function (source) {
+                            hitTestSource = source;
+                        });
+                    });
+                    session.addEventListener('end', function () {
+                        hitTestSourceRequested = false;
+                        hitTestSource = null;
+                    });
+                    hitTestSourceRequested = true;
+                }
+
+                if (hitTestSource) {
+                    const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+                    if (hitTestResults.length > 0 && !isObjectPlaced) {
+                        const hit = hitTestResults[0];
+                        reticle.visible = true;
+                        reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
+                    } else {
+                        reticle.visible = false;
+                    }
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.goBack = function() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
